@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>My first Three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript" src="three.min.js"></script>
+        <script type="text/javascript" src="dat.gui.js"></script>
+		<script>
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+			var renderer = new THREE.WebGLRenderer();
+            renderer.setClearColor();
+            renderer.setClearColor(new THREE.Color(0x444444));
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+            
+            var axes = new THREE.AxisHelper(20);
+            scene.add(axes);
+            var camArray = [2.0, 2.0, 1.4];
+            var center = new THREE.Vector3(0.5, 0.5, 0.5);
+            var spinner = 0.0;
+            var atomScale = 1.0;
+
+			// instantiate a loader
+            var loader = new THREE.JSONLoader();
+           
+            // functions for using loader i had to use two, for some wierd reason. :/
+            function crystalize (array, material, parent, i){    
+                    var newArray = array[i];
+                    loader.load(
+                        // resource URL
+                        newArray[0],
+                        // Function when resource is loaded
+                        function ( geometry, array ) {
+                            var mesh = new THREE.Mesh( geometry, material );
+                            var object = new THREE.Object3D();
+                            mesh.rotation.set(newArray[1], newArray[2], newArray[3]);
+                            mesh.position.set(newArray[4], newArray[5], newArray[6]);
+                            mesh.scale.set(newArray[7] * atomScale, newArray[7] * atomScale, newArray[7] * atomScale);
+                            object.add( mesh );
+                            object.name = "object";
+                            parent.add(object);
+                        }
+                    );
+                //console.log(parent.length);
+                //return parent;
+            } 
+            
+            function crystaline (array, material, object){
+                for (i = 0; i < array.length; i++){
+                    var cool = crystalize(array, material, object, i);
+                    //console.log(cool);
+                }
+                //console.log(object.children.length);
+            }
+            
+            // array containing file, xyz rotations, xyz positions, and scales of all models
+            var hexArray = [['mods/hexCorner20160313.json', 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.5],
+                            ['mods/hexCorner20160313.json', 0.0, 0.0, Math.PI / 3.0, 0.5, Math.sqrt(3.0) / 2.0, 0.0, 0.5],
+                            ['mods/hexCorner20160313.json', 0.0, 0.0, Math.PI * 2.0 / 3.0, -0.5, Math.sqrt(3.0) / 2.0, 0.0, 0.5],
+                            ['mods/hexCorner20160313.json', 0.0, 0.0, Math.PI, -1.0, 0.0, 0.0, 0.5],
+                            ['mods/hexCorner20160313.json', 0.0, 0.0, Math.PI * 4.0 / 3.0, -0.5, -Math.sqrt(3.0) / 2.0, 0.0, 0.5],
+                            ['mods/hexCorner20160313.json', 0.0, 0.0, Math.PI * 5.0 / 3.0, 0.5, -Math.sqrt(3.0) / 2.0, 0.0, 0.5],
+                            ['mods/half11120160313.json', Math.atan(Math.sqrt(2) / 2) + Math.PI, 0.0, Math.PI / 4.0, 0.0, 0.0, 0.0, 0.5],
+                            ['mods/minorSphereHex20160313.json', 0.0, 0.0, 0.0, 0.5, Math.sqrt(3.0) / 6.0, Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                            ['mods/minorSphereHex20160313.json', 0.0, 0.0, Math.PI * 2.0 / 3.0, -0.5, Math.sqrt(3.0) / 6.0, Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                            ['mods/minorSphereHex20160313.json', 0.0, 0.0, Math.PI * 4.0 / 3.0, 0.0, -Math.sqrt(3.0) / 3.0, Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                            ['mods/minorPieceHex20160313.json', 0.0, 0.0, 0.0, 0.0, Math.sqrt(3) * 4.0 / 6.0, Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                            ['mods/minorPieceHex20160313.json', 0.0, 0.0, Math.PI * 2.0 / 3.0, -1.0, -Math.sqrt(3.0) / 3.0, Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                            ['mods/minorPieceHex20160313.json', 0.0, 0.0, Math.PI * 4.0 / 3.0, 1.0, -Math.sqrt(3.0) / 3.0, Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                            ['mods/hexCorner20160313.json', Math.PI, 0.0, 0.0, 1.0, 0.0, 2 * Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                            ['mods/hexCorner20160313.json', Math.PI, 0.0, Math.PI / 3.0, 0.5, -Math.sqrt(3.0) / 2.0, 2 * Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                            ['mods/hexCorner20160313.json', Math.PI, 0.0, Math.PI * 2.0 / 3.0, -0.5, -Math.sqrt(3.0) / 2.0, 2 * Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                            ['mods/hexCorner20160313.json', Math.PI, 0.0, Math.PI, -1.0, 0.0, 2 * Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                            ['mods/hexCorner20160313.json', Math.PI, 0.0, Math.PI * 4.0 / 3.0, -0.5, Math.sqrt(3.0) / 2.0, 2 * Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                            ['mods/hexCorner20160313.json', Math.PI, 0.0, Math.PI * 5.0 / 3.0, 0.5, Math.sqrt(3.0) / 2.0, 2 * Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                            ['mods/half11120160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, 0.0, 0.0, 2 * Math.sin(Math.atan(Math.sqrt(2.0))), 0.5]];
+            
+            var hexSecArray = [['mods/hexCorner20160313.json', 0.0, 0.0, Math.PI / 3.0, 0.5, Math.sqrt(3.0) / 2.0, 0.0, 0.5],
+                                ['mods/hexCorner20160313.json', 0.0, 0.0, Math.PI * 4.0 / 3.0, 0.0, 0.0, 0.0, 0.5],
+                                ['mods/minorSphereTwoHex20160313.json', 0.0, 0.0, 0.0, 0.5, Math.sqrt(3.0) / 6.0, Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                                ['mods/minorPieceHex20160313.json', 0.0, 0.0, 0.0, 0.0, Math.sqrt(3) * 4.0 / 6.0, Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                                ['mods/minorPieceHex20160313.json',  0.0, 0.0, Math.PI * 2.0 / 3.0, -0.5, Math.sqrt(3.0) / 6.0, Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                                ['mods/hexCorner20160313.json', Math.PI, 0.0, -Math.PI / 3.0, 0.5, Math.sqrt(3.0) / 2.0, 2 * Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                                ['mods/hexCorner20160313.json', Math.PI, 0.0, Math.PI * 2.0 / 3.0, 0.0, 0.0, 2 * Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                                ['mods/twelfth20160317.json', 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.5],
+                                ['mods/twelfth20160317.json', 0.0, 0.0, Math.PI, -0.5, Math.sqrt(3.0) / 2.0, 0.0, 0.5],
+                                ['mods/twelfth20160317.json', Math.PI, 0.0, Math.PI / 3.0, 1.0, 0.0, 2 * Math.sin(Math.atan(Math.sqrt(2.0))), 0.5],
+                                ['mods/twelfth20160317.json', Math.PI, 0.0, Math.PI * 4.0 / 3.0, -0.5, Math.sqrt(3.0) / 2.0, 2 * Math.sin(Math.atan(Math.sqrt(2.0))), 0.5]];
+
+            var simpleCubicArray = [['mods/eighth20160313.json', 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5],
+                                   ['mods/eighth20160313.json', 0.0, 0.0, Math.PI / 2.0, 1.0, 0.0, 0.0, 0.5],
+                                   ['mods/eighth20160313.json', 0.0, 0.0, Math.PI, 1.0, 1.0, 0.0, 0.5],
+                                   ['mods/eighth20160313.json', 0.0, 0.0, Math.PI * 3.0 / 2.0, 0.0, 1.0, 0.0, 0.5],
+                                   ['mods/eighth20160313.json', Math.PI, 0.0, 0.0, 0.0, 1.0, 1.0, 0.5],
+                                   ['mods/eighth20160313.json', Math.PI, 0.0, Math.PI / 2.0, 1.0, 1.0, 1.0, 0.5],
+                                   ['mods/eighth20160313.json', Math.PI, 0.0, Math.PI, 1.0, 0.0, 1.0, 0.5],
+                                   ['mods/eighth20160313.json', Math.PI, 0.0, Math.PI * 3.0 / 2.0, 0.0, 0.0, 1.0, 0.5]];
+            
+            var scIntArray = [['../mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, (Math.sqrt(3.0) - 1.0) / 2.0]];
+            
+            var bodyCenteredCubicArray = [['mods/eighth20160313.json', 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Math.sqrt(3.0) / 4.0],
+                                           ['mods/eighth20160313.json', 0.0, 0.0, Math.PI / 2.0, 1.0, 0.0, 0.0, Math.sqrt(3.0) / 4.0],
+                                           ['mods/eighth20160313.json', 0.0, 0.0, Math.PI, 1.0, 1.0, 0.0, Math.sqrt(3.0) / 4.0],
+                                           ['mods/eighth20160313.json', 0.0, 0.0, Math.PI * 3.0 / 2.0, 0.0, 1.0, 0.0, Math.sqrt(3.0) / 4.0],
+                                           ['mods/eighth20160313.json', Math.PI, 0.0, 0.0, 0.0, 1.0, 1.0, Math.sqrt(3.0) / 4.0],
+                                           ['mods/eighth20160313.json', Math.PI, 0.0, Math.PI / 2.0, 1.0, 1.0, 1.0, Math.sqrt(3.0) / 4.0],
+                                           ['mods/eighth20160313.json', Math.PI, 0.0, Math.PI, 1.0, 0.0, 1.0, Math.sqrt(3.0) / 4.0],
+                                           ['mods/eighth20160313.json', Math.PI, 0.0, Math.PI * 3.0 / 2.0, 0.0, 0.0, 1.0, Math.sqrt(3.0) / 4.0],
+                                           ['mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, Math.sqrt(3.0) / 4.0]];
+            
+            var bccTetArray = [['mods/half10020160313.json', 0.0, 0.0, 0.0, 1.0, 0.5, 0.25, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, 0.0, 1.0, 0.25, 0.5, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, 0.0, 1.0, 0.75, 0.5, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, 0.0, 1.0, 0.5, 0.75, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, Math.PI / 2.0, 0.5, 1.0, 0.25, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, Math.PI / 2.0, 0.25, 1.0, 0.5, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, Math.PI / 2.0, 0.75, 1.0, 0.5, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, Math.PI / 2.0, 0.5, 1.0, 0.75, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, Math.PI, 0.0, 0.5, 0.25, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, Math.PI, 0.0, 0.25, 0.5, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, Math.PI, 0.0, 0.75, 0.5, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, Math.PI, 0.0, 0.5, 0.75, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, -Math.PI / 2.0, 0.5, 0.0, 0.25, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, -Math.PI / 2.0, 0.25, 0.0, 0.5, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, -Math.PI / 2.0, 0.75, 0.0, 0.5, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, -Math.PI / 2.0, 0.5, 0.0, 0.75, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, Math.PI / 2.0, 0.0, 0.5, 0.25, 0.0, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, Math.PI / 2.0, 0.0, 0.25, 0.5, 0.0, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, Math.PI / 2.0, 0.0, 0.75, 0.5, 0.0, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, Math.PI / 2.0, 0.0, 0.5, 0.75, 0.0, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, -Math.PI / 2.0, 0.0, 0.5, 0.25, 1.0, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, -Math.PI / 2.0, 0.0, 0.25, 0.5, 1.0, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, -Math.PI / 2.0, 0.0, 0.75, 0.5, 1.0, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, -Math.PI / 2.0, 0.0, 0.5, 0.75, 1.0, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)]];
+            
+            var bccOctArray = [['mods/half10020160313.json', 0.0, 0.0, 0.0, 1.0, 0.5, 0.5, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, Math.PI / 2.0, 0.5, 1.0, 0.5, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, Math.PI, 0.0, 0.5, 0.5, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, -Math.PI / 2.0, 0.5, 0.0, 0.5, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, Math.PI / 2.0, 0.0, 0.5, 0.5, 0.0, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, -Math.PI / 2.0, 0.0, 0.5, 0.5, 1.0, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', 0.0, 0.0, 0.0, 1.0, 0.5, 0.0, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', 0.0, 0.0, Math.PI / 2.0, 0.5, 1.0, 0.0, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', 0.0, 0.0, Math.PI, 0.0, 0.5, 0.0, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', 0.0, 0.0, -Math.PI / 2.0, 0.5, 0.0, 0.0, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', Math.PI / 2.0, 0.0, 0.0, 1.0, 1.0, 0.5, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', Math.PI / 2.0, Math.PI / 2.0, 0.0, 0.0, 1.0, 0.5, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', Math.PI / 2.0, Math.PI, 0.0, 0.0, 0.0, 0.5, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', Math.PI / 2.0, -Math.PI / 2.0, 0.0, 1.0, 0.0, 0.5, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', 0.0, Math.PI, 0.0, 0.0, 0.5, 1.0, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', 0.0, Math.PI, -Math.PI / 2.0, 0.5, 0.0, 1.0, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', 0.0, Math.PI, Math.PI, 1.0, 0.5, 1.0, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', 0.0, Math.PI, Math.PI / 2.0, 0.5, 1.0, 1.0, 0.5 - (Math.sqrt(3.0) / 4.0)]];
+            
+            var bccSecTetArray = [['mods/half10020160313.json', 0.0, 0.0, Math.PI, 0.0, 0.5, 0.25, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, Math.PI, 0.0, 0.25, 0.5, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, Math.PI, 0.0, 0.75, 0.5, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, Math.PI, 0.0, 0.5, 0.75, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, -Math.PI / 2.0, 0.5, 0.0, 0.25, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, -Math.PI / 2.0, 0.25, 0.0, 0.5, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, -Math.PI / 2.0, 0.75, 0.0, 0.5, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, -Math.PI / 2.0, 0.5, 0.0, 0.75, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, Math.PI / 2.0, 0.0, 0.5, 0.25, 0.0, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, Math.PI / 2.0, 0.0, 0.25, 0.5, 0.0, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, -Math.PI / 2.0, 0.0, 0.5, 0.25, 1.0, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, -Math.PI / 2.0, 0.0, 0.25, 0.5, 1.0, (1.0 / Math.cos(Math.atan(0.5)) * 0.5) - (Math.sqrt(3.0) / 4.0)]];
+            
+            var bccSecOctArray = [['mods/half10020160313.json', 0.0, 0.0, Math.PI, 0.0, 0.5, 0.5, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/half10020160313.json', 0.0, 0.0, -Math.PI / 2.0, 0.5, 0.0, 0.5, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune11020160316.json', 0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune11020160316.json', Math.PI, 0.0, -Math.PI / 2.0, 0.5, 0.5, 1.0, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', 0.0, 0.0, Math.PI, 0.0, 0.5, 0.0, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', 0.0, 0.0, -Math.PI / 2.0, 0.5, 0.0, 0.0, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', Math.PI / 2.0, Math.PI, 0.0, 0.0, 0.0, 0.5, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', 0.0, Math.PI, 0.0, 0.0, 0.5, 1.0, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/lune10020160316.json', 0.0, Math.PI, -Math.PI / 2.0, 0.5, 0.0, 1.0, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/eighthLune20160316.json', 0.0, 0.0, 0.0, 1.0, 0.0, 0.5, 0.5 - (Math.sqrt(3.0) / 4.0)],
+                               ['mods/eighthLune20160316.json', 0.0, 0.0, Math.PI * 3.0 / 4.0, 0.0, 1.0, 0.5, 0.5 - (Math.sqrt(3.0) / 4.0)]];
+            
+            
+            var bccSecArray = [['mods/eighth20160313.json', 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Math.sqrt(3.0) / 4.0],
+                                           ['mods/sixteenth11020160313.json', 0.0, 0.0, Math.PI * 0.75, 1.0, 0.0, 0.0, Math.sqrt(3.0) / 4.0],
+                                           ['mods/sixteenth11020160313.json', 0.0, 0.0, Math.PI * 3.0 / 2.0, 0.0, 1.0, 0.0, Math.sqrt(3.0) / 4.0],
+                                           ['mods/sixteenth11020160313.json', Math.PI, 0.0, Math.PI * 0.25, 0.0, 1.0, 1.0, Math.sqrt(3.0) / 4.0],
+                                           ['mods/sixteenth11020160313.json', Math.PI, 0.0, Math.PI, 1.0, 0.0, 1.0, Math.sqrt(3.0) / 4.0],
+                                           ['mods/eighth20160313.json', Math.PI, 0.0, Math.PI * 3.0 / 2.0, 0.0, 0.0, 1.0, Math.sqrt(3.0) / 4.0],
+                                           ['mods/half11020160313.json', 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, Math.sqrt(3.0) / 4.0]];
+
+            var faceCenteredCubicArray = [['mods/eighth20160313.json', 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Math.sqrt(2.0) / 4.0],
+                                         ['mods/eighth20160313.json', 0.0, 0.0, Math.PI / 2.0, 1.0, 0.0, 0.0, Math.sqrt(2.0) / 4.0],
+                                         ['mods/eighth20160313.json', 0.0, 0.0, Math.PI, 1.0, 1.0, 0.0, Math.sqrt(2.0) / 4.0],
+                                         ['mods/eighth20160313.json', 0.0, 0.0, Math.PI * 3.0 / 2.0, 0.0, 1.0, 0.0, Math.sqrt(2.0) / 4.0],
+                                         ['mods/eighth20160313.json', Math.PI, 0.0, 0.0, 0.0, 1.0, 1.0, Math.sqrt(2.0) / 4.0],
+                                         ['mods/eighth20160313.json', Math.PI, 0.0, Math.PI / 2.0, 1.0, 1.0, 1.0, Math.sqrt(2.0) / 4.0],
+                                         ['mods/eighth20160313.json', Math.PI, 0.0, Math.PI, 1.0, 0.0, 1.0, Math.sqrt(2.0) / 4.0],
+                                         ['mods/eighth20160313.json', Math.PI, 0.0, Math.PI * 3.0 / 2.0, 0.0, 0.0, 1.0, Math.sqrt(2.0) / 4.0],
+                                         ['mods/half10020160313.json', 0.0, 0.0, 0.0, 1.0, 0.5, 0.5, Math.sqrt(2.0) / 4.0],
+                                         ['mods/half10020160313.json', 0.0, 0.0, Math.PI / 2.0, 0.5, 1.0, 0.5, Math.sqrt(2.0) / 4.0],
+                                         ['mods/half10020160313.json', 0.0, 0.0, Math.PI, 0.0, 0.5, 0.5, Math.sqrt(2.0) / 4.0],
+                                         ['mods/half10020160313.json', 0.0, 0.0, Math.PI * 3.0 / 2.0, 0.5, 0.0, 0.5, Math.sqrt(2.0) / 4.0],
+                                         ['mods/half10020160313.json', 0.0, Math.PI / 2.0, 0.0, 0.5, 0.5, 0.0, Math.sqrt(2.0) / 4.0],
+                                         ['mods/half10020160313.json', 0.0, Math.PI * 3.0 / 2.0, 0.0, 0.5, 0.5, 1.0, Math.sqrt(2.0) / 4.0]];
+            
+            
+            var fccSecArray = [['mods/eighth20160313.json', 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Math.sqrt(2.0) / 4.0],
+                                         ['mods/cornerX11120160313.json', 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, Math.sqrt(2.0) / 4.0],
+                                         ['mods/cornerY11120160313.json', 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, Math.sqrt(2.0) / 4.0],
+                                         ['mods/cornerZ11120160313.json', 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, Math.sqrt(2.0) / 4.0],
+                                         ['mods/luneYZ20160313.json', 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, Math.sqrt(2.0) / 4.0],
+                                         ['mods/luneXZ20160313.json', 0.0, 0.0, 0.0, 0.5, 0.0, 0.5, Math.sqrt(2.0) / 4.0],
+                                         ['mods/luneXY20160313.json', 0.0, 0.0, 0.0, 0.5, 0.5, 0.0, Math.sqrt(2.0) / 4.0]];
+            
+            
+            var diamondCubicArray = [['mods/eighth20160313.json', 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Math.sqrt(3.0) / 8.0],
+                                     ['mods/eighth20160313.json', 0.0, 0.0, Math.PI / 2.0, 1.0, 0.0, 0.0, Math.sqrt(3.0) / 8.0],
+                                     ['mods/eighth20160313.json', 0.0, 0.0, Math.PI, 1.0, 1.0, 0.0, Math.sqrt(3.0) / 8.0],
+                                     ['mods/eighth20160313.json', 0.0, 0.0, Math.PI * 3.0 / 2.0, 0.0, 1.0, 0.0, Math.sqrt(3.0) / 8.0],
+                                     ['mods/eighth20160313.json', Math.PI, 0.0, 0.0, 0.0, 1.0, 1.0, Math.sqrt(3.0) / 8.0],
+                                     ['mods/eighth20160313.json', Math.PI, 0.0, Math.PI / 2.0, 1.0, 1.0, 1.0, Math.sqrt(3.0) / 8.0],
+                                     ['mods/eighth20160313.json', Math.PI, 0.0, Math.PI, 1.0, 0.0, 1.0, Math.sqrt(3.0) / 8.0],
+                                     ['mods/eighth20160313.json', Math.PI, 0.0, Math.PI * 3.0 / 2.0, 0.0, 0.0, 1.0, Math.sqrt(3.0) / 8.0],
+                                     ['mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, Math.sqrt(3.0) / 8.0],
+                                     ['mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.75, 0.25, 0.25, Math.sqrt(3.0) / 8.0],
+                                     ['mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.25, 0.75, 0.25, Math.sqrt(3.0) / 8.0],
+                                     ['mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.25, 0.25, 0.75, Math.sqrt(3.0) / 8.0],
+                                     ['mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.75, 0.75, 0.75, Math.sqrt(3.0) / 8.0],
+                                     ['mods/half10020160313.json', 0.0, 0.0, 0.0, 1.0, 0.5, 0.5, Math.sqrt(3.0) / 8.0],
+                                     ['mods/half10020160313.json', 0.0, 0.0, Math.PI / 2.0, 0.5, 1.0, 0.5, Math.sqrt(3.0) / 8.0],
+                                     ['mods/half10020160313.json', 0.0, 0.0, Math.PI, 0.0, 0.5, 0.5, Math.sqrt(3.0) / 8.0],
+                                     ['mods/half10020160313.json', 0.0, 0.0, Math.PI * 3.0 / 2.0, 0.5, 0.0, 0.5, Math.sqrt(3.0) / 8.0],
+                                     ['mods/half10020160313.json', 0.0, Math.PI / 2.0, 0.0, 0.5, 0.5, 0.0, Math.sqrt(3.0) / 8.0],
+                                     ['mods/half10020160313.json', 0.0, Math.PI * 3.0 / 2.0, 0.0, 0.5, 0.5, 1.0, Math.sqrt(3.0) / 8.0]];
+            
+            var diamondSecArray = [['mods/eighth20160313.json', 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Math.sqrt(3.0) / 8.0],
+                                         ['mods/cornerX11120160313.json', 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, Math.sqrt(3.0) / 8.0],
+                                         ['mods/cornerY11120160313.json', 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, Math.sqrt(3.0) / 8.0],
+                                         ['mods/cornerZ11120160313.json', 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, Math.sqrt(3.0) / 8.00],
+                                         ['mods/luneYZ20160313.json', 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, Math.sqrt(3.0) / 8.0],
+                                         ['mods/luneXZ20160313.json', 0.0, 0.0, 0.0, 0.5, 0.0, 0.5, Math.sqrt(3.0) / 8.0],
+                                         ['mods/luneXY20160313.json', 0.0, 0.0, 0.0, 0.5, 0.5, 0.0, Math.sqrt(3.0) / 8.0],
+                                         ['mods/minorPieceCubic20160315.json', 0.0, 0.0, 0.0, 0.75, 0.25, 0.25, Math.sqrt(3.0) / 8.0],
+                                         ['mods/minorPieceCubic20160315.json', 0.0, 0.0, 0.0, 0.25, 0.75, 0.25, Math.sqrt(3.0) / 8.0],
+                                         ['mods/minorPieceCubic20160315.json', 0.0, 0.0, 0.0, 0.25, 0.25, 0.75, Math.sqrt(3.0) / 8.0]];
+            
+            var fccTetArray = [['mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.25, 0.25, 0.25, (Math.sqrt(2.0) / 4.0) * ((Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 2.0) - 1.0)],
+                                   ['mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.25, 0.25, 0.75, (Math.sqrt(2.0) / 4.0) * ((Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 2.0) - 1.0)],
+                                   ['mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.25, 0.75, 0.25, (Math.sqrt(2.0) / 4.0) * ((Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 2.0) - 1.0)],
+                                   ['mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.25, 0.75, 0.75, (Math.sqrt(2.0) / 4.0) * ((Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 2.0) - 1.0)],
+                                   ['mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.75, 0.25, 0.25, (Math.sqrt(2.0) / 4.0) * ((Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 2.0) - 1.0)],
+                                   ['mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.75, 0.25, 0.75, (Math.sqrt(2.0) / 4.0) * ((Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 2.0) - 1.0)],
+                                   ['mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.75, 0.75, 0.25, (Math.sqrt(2.0) / 4.0) * ((Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 2.0) - 1.0)],
+                                   ['mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.75, 0.75, 0.75, (Math.sqrt(2.0) / 4.0) * ((Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 2.0) - 1.0)]];
+            
+            var fccOctArray =[['mods/lune10020160316.json', 0.0, 0.0, 0.0, 1.0, 0.5, 0.0, 0.5 - (Math.sqrt(2.0) / 4.0)],
+                              ['mods/lune10020160316.json', 0.0, 0.0, Math.PI / 2.0, 0.5, 1.0, 0.0, 0.5 - (Math.sqrt(2.0) / 4.0)],
+                              ['mods/lune10020160316.json', 0.0, 0.0, Math.PI, 0.0, 0.5, 0.0, 0.5 - (Math.sqrt(2.0) / 4.0)],
+                              ['mods/lune10020160316.json', 0.0, 0.0, -Math.PI / 2.0, 0.5, 0.0, 0.0, 0.5 - (Math.sqrt(2.0) / 4.0)],
+                              ['mods/lune10020160316.json', Math.PI / 2.0, 0.0, 0.0, 1.0, 1.0, 0.5, 0.5 - (Math.sqrt(2.0) / 4.0)],
+                              ['mods/lune10020160316.json', Math.PI / 2.0, Math.PI / 2.0, 0.0, 0.0, 1.0, 0.5, 0.5 - (Math.sqrt(2.0) / 4.0)],
+                              ['mods/lune10020160316.json', Math.PI / 2.0, Math.PI, 0.0, 0.0, 0.0, 0.5, 0.5 - (Math.sqrt(2.0) / 4.0)],
+                              ['mods/lune10020160316.json', Math.PI / 2.0, -Math.PI / 2.0, 0.0, 1.0, 0.0, 0.5, 0.5 - (Math.sqrt(2.0) / 4.0)],
+                              ['mods/lune10020160316.json', 0.0, Math.PI, 0.0, 0.0, 0.5, 1.0, 0.5 - (Math.sqrt(2.0) / 4.0)],
+                              ['mods/lune10020160316.json', 0.0, Math.PI, -Math.PI / 2.0, 0.5, 0.0, 1.0, 0.5 - (Math.sqrt(2.0) / 4.0)],
+                              ['mods/lune10020160316.json', 0.0, Math.PI, Math.PI, 1.0, 0.5, 1.0, 0.5 - (Math.sqrt(2.0) / 4.0)],
+                              ['mods/lune10020160316.json', 0.0, Math.PI, Math.PI / 2.0, 0.5, 1.0, 1.0, 0.5 - (Math.sqrt(2.0) / 4.0)],
+                              ['mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 0.5 - (Math.sqrt(2.0) / 4.0)]];
+            
+            var fccSecTetArray = [['mods/sphere20160313.json', 0.0, 0.0, 0.0, 0.25, 0.25, 0.25, (Math.sqrt(2.0) / 4.0) * ((Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 2.0) - 1.0)]];
+            
+            var fccSecOctArray = [['mods/lune10020160316.json', 0.0, 0.0, Math.PI, 0.0, 0.5, 0.0, 0.5 - (Math.sqrt(2.0) / 4.0)],
+                              ['mods/lune10020160316.json', 0.0, 0.0, -Math.PI / 2.0, 0.5, 0.0, 0.0, 0.5 - (Math.sqrt(2.0) / 4.0)],
+                              ['mods/lune10020160316.json', Math.PI / 2.0, Math.PI, 0.0, 0.0, 0.0, 0.5, 0.5 - (Math.sqrt(2.0) / 4.0)]];
+            
+            hexTetArray = [['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, 0.5, Math.sqrt(3.0) / 6.0, Math.sin(Math.atan(Math.sqrt(2.0))) / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, -0.5, Math.sqrt(3.0) / 6.0, Math.sin(Math.atan(Math.sqrt(2.0))) / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, 0.0, -Math.sqrt(3.0) / 3.0, Math.sin(Math.atan(Math.sqrt(2.0))) / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, 0.5, Math.sqrt(3.0) / 6.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 7.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, -0.5, Math.sqrt(3.0) / 6.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 7.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, 0.0, -Math.sqrt(3.0) / 3.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 7.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, 0.0, 0.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, 0.0, 0.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 5.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/third20160316.json', 0.0, 0.0, 0.0, 1.0, 0.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/third20160316.json', 0.0, 0.0, Math.PI / 3.0, 0.5, Math.sqrt(3.0) / 2.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/third20160316.json', 0.0, 0.0, Math.PI * 2.0 / 3.0, -0.5, Math.sqrt(3.0) / 2.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/third20160316.json', 0.0, 0.0, Math.PI, -1.0, 0.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/third20160316.json', 0.0, 0.0, Math.PI * 5.0 / 3.0, 0.5, -Math.sqrt(3.0) / 2.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/third20160316.json', 0.0, 0.0, Math.PI * 4.0 / 3.0, -0.5, -Math.sqrt(3.0) / 2.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/third20160316.json', 0.0, 0.0, 0.0, 1.0, 0.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 5.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/third20160316.json', 0.0, 0.0, Math.PI / 3.0, 0.5, Math.sqrt(3.0) / 2.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 5.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/third20160316.json', 0.0, 0.0, Math.PI * 2.0 / 3.0, -0.5, Math.sqrt(3.0) / 2.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 5.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/third20160316.json', 0.0, 0.0, Math.PI, -1.0, 0.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 5.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/third20160316.json', 0.0, 0.0, Math.PI * 5.0 / 3.0, 0.5, -Math.sqrt(3.0) / 2.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 5.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/third20160316.json', 0.0, 0.0, Math.PI * 4.0 / 3.0, -0.5, -Math.sqrt(3.0) / 2.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 5.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5]];
+            
+            hexOctArray = [['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, 0.0, Math.sqrt(3.0) / 3.0, 
+                           (Math.sin((Math.PI/2.0) - Math.atan(Math.sqrt(2.0))) * ((Math.sqrt(3.0)/2.0) * Math.cos((Math.PI/2.0) - Math.atan(Math.sqrt(2.0))))),
+                           ((Math.sqrt(3.0) / 2.0) * Math.cos((Math.PI / 2.0) - Math.atan(Math.sqrt(2.0)))) - 0.5],
+                          ['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, 0.5, -Math.sqrt(3.0) / 6.0, 
+                           (Math.sin((Math.PI/2.0) - Math.atan(Math.sqrt(2.0))) * ((Math.sqrt(3.0)/2.0) * Math.cos((Math.PI/2.0) - Math.atan(Math.sqrt(2.0))))),
+                           ((Math.sqrt(3.0) / 2.0) * Math.cos((Math.PI / 2.0) - Math.atan(Math.sqrt(2.0)))) - 0.5],
+                          ['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, -0.5, -Math.sqrt(3.0) / 6.0,
+                           (Math.sin((Math.PI/2.0) - Math.atan(Math.sqrt(2.0))) * ((Math.sqrt(3.0)/2.0) * Math.cos((Math.PI/2.0) - Math.atan(Math.sqrt(2.0))))),
+                           ((Math.sqrt(3.0) / 2.0) * Math.cos((Math.PI / 2.0) - Math.atan(Math.sqrt(2.0)))) - 0.5],
+                          ['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, 0.0, Math.sqrt(3.0) / 3.0, 
+                           (2 * Math.sin(Math.atan(Math.sqrt(2.0)))) - (Math.sin((Math.PI/2.0) - Math.atan(Math.sqrt(2.0))) * ((Math.sqrt(3.0)/2.0) * Math.cos((Math.PI/2.0) - Math.atan(Math.sqrt(2.0))))),
+                           ((Math.sqrt(3.0) / 2.0) * Math.cos((Math.PI / 2.0) - Math.atan(Math.sqrt(2.0)))) - 0.5],
+                          ['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, 0.5, -Math.sqrt(3.0) / 6.0, 
+                           (2 * Math.sin(Math.atan(Math.sqrt(2.0)))) - (Math.sin((Math.PI/2.0) - Math.atan(Math.sqrt(2.0))) * ((Math.sqrt(3.0)/2.0) * Math.cos((Math.PI/2.0) - Math.atan(Math.sqrt(2.0))))),
+                           ((Math.sqrt(3.0) / 2.0) * Math.cos((Math.PI / 2.0) - Math.atan(Math.sqrt(2.0)))) - 0.5],
+                          ['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, -0.5, -Math.sqrt(3.0) / 6.0,
+                           (2 * Math.sin(Math.atan(Math.sqrt(2.0)))) - (Math.sin((Math.PI/2.0) - Math.atan(Math.sqrt(2.0))) * ((Math.sqrt(3.0)/2.0) * Math.cos((Math.PI/2.0) - Math.atan(Math.sqrt(2.0))))),
+                           ((Math.sqrt(3.0) / 2.0) * Math.cos((Math.PI / 2.0) - Math.atan(Math.sqrt(2.0)))) - 0.5]];
+            
+            hexSecTetArray = [['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, 0.5, Math.sqrt(3.0) / 6.0, Math.sin(Math.atan(Math.sqrt(2.0))) / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, 0.5, Math.sqrt(3.0) / 6.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 7.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/third20160316.json', 0.0, 0.0, -Math.PI * 2.0 / 3.0, 0.0, 0.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/third20160316.json', 0.0, 0.0, -Math.PI * 2.0 / 3.0, 0.0, 0.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 5.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/sixthLune20160317.json', 0.0, 0.0, 0.0, 1.0, 0.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/third20160316.json', 0.0, 0.0, Math.PI / 3.0, 0.5, Math.sqrt(3.0) / 2.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/sixthLune20160317.json', 0.0, 0.0, Math.PI, -0.5, Math.sqrt(3.0) / 2.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/sixthLune20160317.json', 0.0, 0.0, 0.0, 1.0, 0.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 5.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/third20160316.json', 0.0, 0.0, Math.PI / 3.0, 0.5, Math.sqrt(3.0) / 2.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 5.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5],
+                           ['mods/sixthLune20160317.json', 0.0, 0.0, Math.PI, -0.5, Math.sqrt(3.0) / 2.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 5.0 / 4.0, Math.sin(Math.atan(Math.sqrt(2.0))) * 3.0 / 4.0 - 0.5]];
+            
+            hexSecOctArray = [['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, 0.0, Math.sqrt(3.0) / 3.0, 
+                           (Math.sin((Math.PI/2.0) - Math.atan(Math.sqrt(2.0))) * ((Math.sqrt(3.0)/2.0) * Math.cos((Math.PI/2.0) - Math.atan(Math.sqrt(2.0))))),
+                           ((Math.sqrt(3.0) / 2.0) * Math.cos((Math.PI / 2.0) - Math.atan(Math.sqrt(2.0)))) - 0.5],
+                          ['mods/sphere20160313.json', Math.atan(Math.sqrt(2) / 2), 0.0, Math.PI / 4.0, 0.0, Math.sqrt(3.0) / 3.0, 
+                           (2 * Math.sin(Math.atan(Math.sqrt(2.0)))) - (Math.sin((Math.PI/2.0) - Math.atan(Math.sqrt(2.0))) * ((Math.sqrt(3.0)/2.0) * Math.cos((Math.PI/2.0) - Math.atan(Math.sqrt(2.0))))),
+                           ((Math.sqrt(3.0) / 2.0) * Math.cos((Math.PI / 2.0) - Math.atan(Math.sqrt(2.0)))) - 0.5]];
+            
+            
+            //draw the hexCrystal
+            var main = new THREE.MeshLambertMaterial( {color:0xaaaaaa} );
+            var tetral = new THREE.MeshLambertMaterial( {color:0x00ff00} );
+            var octral = new THREE.MeshLambertMaterial( {color:0xff0000} );
+            main.transparent = true;
+            tetral.transparent = true;
+            octral.transparent = true;
+            var hexCrystal = new THREE.Object3D();
+            var hexSecCrystal = new THREE.Object3D();
+            var simpleCrystal = new THREE.Object3D();
+            var scIntCrystal = new THREE.Object3D();
+            var bccCrystal = new THREE.Object3D();
+            var bccTetCrystal = new THREE.Object3D();
+            var bccOctCrystal = new THREE.Object3D();
+            var bccSecCrystal = new THREE.Object3D();
+            var bccSecTetCrystal = new THREE.Object3D();
+            var bccSecOctCrystal = new THREE.Object3D();
+            var fccCrystal = new THREE.Object3D();
+            var fccSecCrystal = new THREE.Object3D();
+            var diamondCubicCrystal = new THREE.Object3D();
+            var fccTetCrystal = new THREE.Object3D();
+            var fccOctCrystal = new THREE.Object3D();
+            var fccSecTetCrystal = new THREE.Object3D();
+            var fccSecOctCrystal = new THREE.Object3D();
+            var hexTetCrystal = new THREE.Object3D();
+            var hexOctCrystal = new THREE.Object3D();
+            var hexSecTetCrystal = new THREE.Object3D();
+            var hexSecOctCrystal = new THREE.Object3D();
+            var diamondSecCrystal = new THREE.Object3D();
+            crystaline(hexArray, main, hexCrystal);
+            crystaline(hexSecArray, main, hexSecCrystal);
+            crystaline(simpleCubicArray, main, simpleCrystal);
+            crystaline(scIntArray, tetral, scIntCrystal);
+            crystaline(bodyCenteredCubicArray, main, bccCrystal);
+            crystaline(bccTetArray, tetral, bccTetCrystal);
+            crystaline(bccOctArray, octral, bccOctCrystal);
+            crystaline(bccSecArray, main, bccSecCrystal);
+            crystaline(bccSecTetArray, tetral, bccSecTetCrystal);
+            crystaline(bccSecOctArray, octral, bccSecTetCrystal);
+            crystaline(faceCenteredCubicArray, main, fccCrystal);
+            crystaline(fccSecArray, main, fccSecCrystal);
+            crystaline(diamondCubicArray, main, diamondCubicCrystal);
+            crystaline(fccTetArray, tetral, fccTetCrystal);
+            crystaline(fccOctArray, octral, fccOctCrystal);
+            crystaline(fccSecTetArray, tetral, fccSecTetCrystal);
+            crystaline(fccSecOctArray, octral, fccSecOctCrystal);
+            crystaline(hexTetArray, tetral, hexTetCrystal);
+            crystaline(hexOctArray, octral, hexOctCrystal);
+            crystaline(hexSecTetArray, tetral, hexSecTetCrystal);
+            crystaline(hexSecOctArray, octral, hexSecOctCrystal);
+            crystaline(diamondSecArray, main, diamondSecCrystal);
+            scene.add(simpleCrystal);
+            scene.add(scIntCrystal);
+            scene.add(hexCrystal);
+            scene.add(hexSecCrystal);
+            scene.add(bccCrystal);
+            scene.add(bccTetCrystal);
+            scene.add(bccOctCrystal);
+            scene.add(bccSecCrystal);
+            scene.add(bccSecTetCrystal);
+            scene.add(bccSecOctCrystal);
+            scene.add(fccCrystal);
+            scene.add(fccSecCrystal);
+            scene.add(diamondCubicCrystal);
+            scene.add(fccTetCrystal);
+            scene.add(fccOctCrystal);
+            scene.add(fccSecTetCrystal);
+            scene.add(fccSecOctCrystal);
+            scene.add(hexTetCrystal);
+            scene.add(hexOctCrystal);
+            scene.add(hexSecTetCrystal);
+            scene.add(hexSecOctCrystal);
+            scene.add(diamondSecCrystal);
+            //console.log(hexCrystal);
+            
+            //camera.position.set(Math.cos(Math.PI / 6.0) * camArray[0], Math.cos(Math.PI / 6.0) * camArray[1], Math.cos(Math.PI / 6.0) * camArray[2]);
+            camera.up.set(0, 0, 1);
+            camera.lookAt(center);
+            
+			var light = new THREE.DirectionalLight( 0xffffff, 1.0 );
+            light.position.set( 200, 400, 500 );
+            scene.add(light);
+            var ambientLight = new THREE.AmbientLight(0x000000);
+            scene.add(ambientLight);
+            
+            var controls = new function () {
+                this.Solvent = 1.0;
+                this.Tetrahedral = 0.0;
+                this.Octahedral = 0.0;
+                this.Crystal = 'Simple Cubic';
+                this.CamVertical = 30.0;
+                this.CamHorizontal = 30;
+                this.CamZoom = 2.0;
+            };
+
+            var gui = new dat.GUI();
+            gui.add(controls, 'Crystal', ['Simple Cubic', 'BCC', '110 BCC', 'FCC', '111 FCC',  'Hexagonal', 'Hexagonal / 3', 'Diamond', '111 Diamond']);
+            gui.add(controls, 'Solvent', 0.0, 1.0);
+            gui.add(controls, 'Tetrahedral', 0.0, 1.0);
+            gui.add(controls, 'Octahedral', 0.0, 1.0);
+            gui.add(controls, 'CamVertical', 0.0, 90.0);
+            gui.add(controls, 'CamHorizontal', 0.0, 180.0);
+            gui.add(controls, 'CamZoom', 1.0, 5.0)
+            
+			function render() {
+                //camera.position.set(Math.cos(spinner) * camArray[0] + 0.5, Math.sin(spinner) * camArray[1] + 0.5, camArray[2] + 0.5);
+                camera.position.set(Math.cos(controls.CamHorizontal * Math.PI / 180.0) * Math.cos(controls.CamVertical * Math.PI / 180.0) * controls.CamZoom + 0.5, Math.sin(controls.CamHorizontal * Math.PI / 180.0) * Math.cos(controls.CamVertical * Math.PI / 180.0) * controls.CamZoom + 0.5, Math.sin(controls.CamVertical * Math.PI / 180.0) * controls.CamZoom + 0.5);
+                camera.lookAt(center);
+                main.opacity = controls.Solvent;
+                tetral.opacity = controls.Tetrahedral;
+                octral.opacity = controls.Octahedral;
+
+                if (controls.Crystal == 'Simple Cubic') {
+                    simpleCrystal.visible = true;
+                    scIntCrystal.visible=true;
+                    hexCrystal.visible = false;
+                    hexSecCrystal.visible = false;
+                    bccCrystal.visible = false;
+                    bccTetCrystal.visible = false;
+                    bccOctCrystal.visible = false;
+                    bccSecCrystal.visible = false;
+                    bccSecTetCrystal.visible = false;
+                    bccSecOctCrystal.visible = false;
+                    fccCrystal.visible = false;
+                    fccSecCrystal.visible = false;
+                    diamondCubicCrystal.visible = false;
+                    fccTetCrystal.visible = false;
+                    fccOctCrystal.visible = false;
+                    fccSecTetCrystal.visible = false;
+                    fccSecOctCrystal.visible = false;
+                    hexTetCrystal.visible = false;
+                    hexOctCrystal.visible = false;
+                    hexSecTetCrystal.visible = false;
+                    hexSecOctCrystal.visible = false;
+                    diamondSecCrystal.visible = false;
+                } else if (controls.Crystal == 'Hexagonal'){
+                    simpleCrystal.visible = false;
+                    scIntCrystal.visible=false;
+                    hexCrystal.visible = true;
+                    hexSecCrystal.visible = false;
+                    bccCrystal.visible = false;
+                    bccTetCrystal.visible = false;
+                    bccOctCrystal.visible = false;
+                    bccSecCrystal.visible = false;
+                    bccSecTetCrystal.visible = false;
+                    bccSecOctCrystal.visible = false;
+                    fccCrystal.visible = false;
+                    fccSecCrystal.visible = false;
+                    diamondCubicCrystal.visible = false;
+                    fccTetCrystal.visible = false;
+                    fccOctCrystal.visible = false;
+                    fccSecTetCrystal.visible = false;
+                    fccSecOctCrystal.visible = false;
+                    hexTetCrystal.visible = true;
+                    hexOctCrystal.visible = true;
+                    hexSecTetCrystal.visible = false;
+                    hexSecOctCrystal.visible = false;
+                    diamondSecCrystal.visible = false;
+                } else if (controls.Crystal == 'Hexagonal / 3'){
+                    simpleCrystal.visible = false;
+                    scIntCrystal.visible=false;
+                    hexCrystal.visible = false;
+                    hexSecCrystal.visible = true;
+                    bccCrystal.visible = false;
+                    bccTetCrystal.visible = false;
+                    bccOctCrystal.visible = false;
+                    bccSecCrystal.visible = false;
+                    bccSecTetCrystal.visible = false;
+                    bccSecOctCrystal.visible = false;
+                    fccCrystal.visible = false;
+                    fccSecCrystal.visible = false;
+                    diamondCubicCrystal.visible = false;
+                    fccTetCrystal.visible = false;
+                    fccOctCrystal.visible = false;
+                    fccSecTetCrystal.visible = false;
+                    fccSecOctCrystal.visible = false;
+                    hexTetCrystal.visible = false;
+                    hexOctCrystal.visible = false;
+                    hexSecTetCrystal.visible = true;
+                    hexSecOctCrystal.visible = true;
+                    diamondSecCrystal.visible = false;
+                } else if (controls.Crystal == 'BCC'){
+                    simpleCrystal.visible = false;
+                    scIntCrystal.visible=false;
+                    hexCrystal.visible = false;
+                    hexSecCrystal.visible = false;
+                    bccCrystal.visible = true;
+                    bccTetCrystal.visible = true;
+                    bccOctCrystal.visible = true;
+                    bccSecCrystal.visible = false;
+                    bccSecTetCrystal.visible = false;
+                    bccSecOctCrystal.visible = false;
+                    fccCrystal.visible = false;
+                    fccSecCrystal.visible = false;
+                    diamondCubicCrystal.visible = false;
+                    fccTetCrystal.visible = false;
+                    fccOctCrystal.visible = false;
+                    fccSecTetCrystal.visible = false;
+                    fccSecOctCrystal.visible = false;
+                    hexTetCrystal.visible = false;
+                    hexOctCrystal.visible = false;
+                    hexSecTetCrystal.visible = false;
+                    hexSecOctCrystal.visible = false;
+                    diamondSecCrystal.visible = false;
+                }  else if (controls.Crystal == '110 BCC'){
+                    simpleCrystal.visible = false;
+                    scIntCrystal.visible=false;
+                    hexCrystal.visible = false;
+                    hexSecCrystal.visible = false;
+                    bccCrystal.visible = false;
+                    bccTetCrystal.visible = false;
+                    bccOctCrystal.visible = false;
+                    bccSecCrystal.visible = true;
+                    bccSecTetCrystal.visible = true;
+                    bccSecOctCrystal.visible = true;
+                    fccCrystal.visible = false;
+                    fccSecCrystal.visible = false;
+                    diamondCubicCrystal.visible = false;
+                    fccTetCrystal.visible = false;
+                    fccOctCrystal.visible = false;
+                    fccSecTetCrystal.visible = false;
+                    fccSecOctCrystal.visible = false;
+                    hexTetCrystal.visible = false;
+                    hexOctCrystal.visible = false;
+                    hexSecTetCrystal.visible = false;
+                    hexSecOctCrystal.visible = false;
+                    diamondSecCrystal.visible = false;
+                } else if (controls.Crystal == 'FCC'){
+                    simpleCrystal.visible = false;
+                    scIntCrystal.visible=false;
+                    hexCrystal.visible = false;
+                    hexSecCrystal.visible = false;
+                    bccCrystal.visible = false;
+                    bccTetCrystal.visible = false;
+                    bccOctCrystal.visible = false;
+                    bccSecCrystal.visible = false;
+                    bccSecTetCrystal.visible = false;
+                    bccSecOctCrystal.visible = false;
+                    fccCrystal.visible = true;
+                    fccSecCrystal.visible = false;
+                    diamondCubicCrystal.visible = false;
+                    fccTetCrystal.visible = true;
+                    fccOctCrystal.visible = true;
+                    fccSecTetCrystal.visible = false;
+                    fccSecOctCrystal.visible = false;
+                    hexTetCrystal.visible = false;
+                    hexOctCrystal.visible = false;
+                    hexSecTetCrystal.visible = false;
+                    hexSecOctCrystal.visible = false;
+                    diamondSecCrystal.visible = false;
+                } else if (controls.Crystal == '111 FCC'){
+                    simpleCrystal.visible = false;
+                    scIntCrystal.visible=false;
+                    hexCrystal.visible = false;
+                    hexSecCrystal.visible = false;
+                    bccCrystal.visible = false;
+                    bccTetCrystal.visible = false;
+                    bccOctCrystal.visible = false;
+                    bccSecCrystal.visible = false;
+                    bccSecTetCrystal.visible = false;
+                    bccSecOctCrystal.visible = false;
+                    fccCrystal.visible = false;
+                    fccSecCrystal.visible = true;
+                    diamondCubicCrystal.visible = false;
+                    fccTetCrystal.visible = false;
+                    fccOctCrystal.visible = false;
+                    fccSecTetCrystal.visible = true;
+                    fccSecOctCrystal.visible = true;
+                    hexTetCrystal.visible = false;
+                    hexOctCrystal.visible = false;
+                    hexSecTetCrystal.visible = false;
+                    hexSecOctCrystal.visible = false;
+                    diamondSecCrystal.visible = false;
+                } else if (controls.Crystal == 'Diamond'){
+                    simpleCrystal.visible = false;
+                    scIntCrystal.visible=false;
+                    hexCrystal.visible = false;
+                    hexSecCrystal.visible = false;
+                    bccCrystal.visible = false;
+                    bccTetCrystal.visible = false;
+                    bccOctCrystal.visible = false;
+                    bccSecCrystal.visible = false;
+                    bccSecTetCrystal.visible = false;
+                    bccSecOctCrystal.visible = false;
+                    fccCrystal.visible = false;
+                    fccSecCrystal.visible = false;
+                    diamondCubicCrystal.visible = true;
+                    fccTetCrystal.visible = false;
+                    fccOctCrystal.visible = false;
+                    fccSecTetCrystal.visible = false;
+                    fccSecOctCrystal.visible = false;
+                    hexTetCrystal.visible = false;
+                    hexOctCrystal.visible = false;
+                    hexSecTetCrystal.visible = false;
+                    hexSecOctCrystal.visible = false;
+                    diamondSecCrystal.visible = false;
+                } else if (controls.Crystal == '111 Diamond'){
+                    simpleCrystal.visible = false;
+                    scIntCrystal.visible=false;
+                    hexCrystal.visible = false;
+                    hexSecCrystal.visible = false;
+                    bccCrystal.visible = false;
+                    bccTetCrystal.visible = false;
+                    bccOctCrystal.visible = false;
+                    bccSecCrystal.visible = false;
+                    bccSecTetCrystal.visible = false;
+                    bccSecOctCrystal.visible = false;
+                    fccCrystal.visible = false;
+                    fccSecCrystal.visible = false;
+                    diamondCubicCrystal.visible = false;
+                    fccTetCrystal.visible = false;
+                    fccOctCrystal.visible = false;
+                    fccSecTetCrystal.visible = false;
+                    fccSecOctCrystal.visible = false;
+                    hexTetCrystal.visible = false;
+                    hexOctCrystal.visible = false;
+                    hexSecTetCrystal.visible = false;
+                    hexSecOctCrystal.visible = false;
+                    diamondSecCrystal.visible = true;
+                }
+
+                spinner += Math.PI/200.0;
+				requestAnimationFrame( render );
+				renderer.render( scene, camera );
+                //orbital.update();
+			}
+			render();
+		</script>
+	</body>
+</html>
