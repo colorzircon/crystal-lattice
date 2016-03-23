@@ -10,4 +10,6 @@ Right now, you select the type of lattice, and whether it is cross-sectioned alo
 The first three sliders designate the opacity of the atoms, with 'Solvent' being the main atom, and the other two being interstitial atoms. 
 The fourth and fifth sliders control the position of the camera, as if on a gimbal, and the sixth slider dollys in and out.
 
+Here are video instructions: https://youtu.be/OCng7Z4_dHY
+
 Here is a video explaining the project: https://youtu.be/iZbiheCQpLE
