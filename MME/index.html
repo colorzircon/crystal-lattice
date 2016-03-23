@@ -11,6 +11,7 @@
 	<body>
 		<script type="text/javascript" src="three.min.js"></script>
         <script type="text/javascript" src="dat.gui.js"></script>
+        <script type="text/javascript" src="David82OrbitControls.js"></script>
 		<script>
 			var scene = new THREE.Scene();
 			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -20,12 +21,58 @@
 			renderer.setSize( window.innerWidth, window.innerHeight );
 			document.body.appendChild( renderer.domElement );
             
-            var axes = new THREE.AxisHelper(20);
-            scene.add(axes);
-            var camArray = [2.0, 2.0, 1.4];
-            var center = new THREE.Vector3(0.5, 0.5, 0.5);
+            THREE.HexAxisHelper = function ( size ) {
+
+                size = size || 1;
+
+                var vertices = new Float32Array( [
+                    0, 0, 0,  size, 0, 0,
+                    0, 0, 0,  -size / 2.0, size * Math.sqrt(3.0) / 2.0, 0,
+                    0, 0, 0,  -size / 2.0, -size * Math.sqrt(3.0) / 2.0, 0,
+                    0, 0, 0,  0, 0, size
+                ] );
+
+                var colors = new Float32Array( [
+                    0, 1, 1,  0, 1, 1,
+                    1, 0, 1,  1, 0, 1,
+                    1, 1, 0,  1, 1, 0,
+                    1, 1, 1,  1, 1, 1
+                ] );
+
+                var geometry = new THREE.BufferGeometry();
+                geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+                geometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ) );
+
+                var material = new THREE.LineBasicMaterial( { vertexColors: THREE.VertexColors } );
+
+                THREE.LineSegments.call( this, geometry, material );
+
+            };
+
+            THREE.HexAxisHelper.prototype = Object.create( THREE.LineSegments.prototype );
+            THREE.HexAxisHelper.prototype.constructor = THREE.HexAxisHelper;
+            
+            var cubeAxes = new THREE.AxisHelper(20);
+            var hexAxes = new THREE.HexAxisHelper(20);
+            scene.add(cubeAxes);
+            scene.add(hexAxes);
+            var camArray = [new THREE.Vector3(0.5, 0.5, 0.5), new THREE.Vector3(0.0, 0.0, Math.sin(Math.atan(Math.sqrt(2.0))))];
+            var camCenter = camArray[0];
             var spinner = 0.0;
             var atomScale = 1.0;
+            
+            //camera.position.set(Math.cos(Math.PI / 6.0) * camArray[0], Math.cos(Math.PI / 6.0) * camArray[1], Math.cos(Math.PI / 6.0) * camArray[2]);
+            camera.up.set(0, 0, 1);
+            camera.lookAt(camCenter);
+            camera.position.set(2.5, 3.0, 1.5);
+            var orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+            
+			var light = new THREE.DirectionalLight( 0xffffff, 1.0 );
+            light.position.set( 200, 400, 500 );
+            scene.add(light);
+            var ambientLight = new THREE.AmbientLight(0x000000);
+            scene.add(ambientLight);
+                        
 
 			// instantiate a loader
             var loader = new THREE.JSONLoader();
@@ -412,44 +459,34 @@
             scene.add(diamondSecCrystal);
             //console.log(hexCrystal);
             
-            //camera.position.set(Math.cos(Math.PI / 6.0) * camArray[0], Math.cos(Math.PI / 6.0) * camArray[1], Math.cos(Math.PI / 6.0) * camArray[2]);
-            camera.up.set(0, 0, 1);
-            camera.lookAt(center);
-            
-			var light = new THREE.DirectionalLight( 0xffffff, 1.0 );
-            light.position.set( 200, 400, 500 );
-            scene.add(light);
-            var ambientLight = new THREE.AmbientLight(0x000000);
-            scene.add(ambientLight);
-            
+
             var controls = new function () {
                 this.Solvent = 1.0;
                 this.Tetrahedral = 0.0;
                 this.Octahedral = 0.0;
                 this.Crystal = 'Simple Cubic';
-                this.CamVertical = 30.0;
-                this.CamHorizontal = 30;
-                this.CamZoom = 2.0;
+                this.Section = false;
             };
 
             var gui = new dat.GUI();
-            gui.add(controls, 'Crystal', ['Simple Cubic', 'BCC', '110 BCC', 'FCC', '111 FCC',  'Hexagonal', 'Hexagonal / 3', 'Diamond', '111 Diamond']);
+            gui.add(controls, 'Crystal', ['Simple Cubic', 'BCC', 'FCC', 'Hexagonal', 'Diamond']);
+            gui.add(controls, 'Section');
             gui.add(controls, 'Solvent', 0.0, 1.0);
             gui.add(controls, 'Tetrahedral', 0.0, 1.0);
             gui.add(controls, 'Octahedral', 0.0, 1.0);
-            gui.add(controls, 'CamVertical', 0.0, 90.0);
-            gui.add(controls, 'CamHorizontal', 0.0, 180.0);
-            gui.add(controls, 'CamZoom', 1.0, 5.0)
+
+
             
 			function render() {
-                //camera.position.set(Math.cos(spinner) * camArray[0] + 0.5, Math.sin(spinner) * camArray[1] + 0.5, camArray[2] + 0.5);
-                camera.position.set(Math.cos(controls.CamHorizontal * Math.PI / 180.0) * Math.cos(controls.CamVertical * Math.PI / 180.0) * controls.CamZoom + 0.5, Math.sin(controls.CamHorizontal * Math.PI / 180.0) * Math.cos(controls.CamVertical * Math.PI / 180.0) * controls.CamZoom + 0.5, Math.sin(controls.CamVertical * Math.PI / 180.0) * controls.CamZoom + 0.5);
-                camera.lookAt(center);
+
                 main.opacity = controls.Solvent;
                 tetral.opacity = controls.Tetrahedral;
                 octral.opacity = controls.Octahedral;
 
                 if (controls.Crystal == 'Simple Cubic') {
+                    camCenter = camArray[0];
+                    cubeAxes.visible = true;
+                    hexAxes.visible = false;
                     simpleCrystal.visible = true;
                     scIntCrystal.visible=true;
                     hexCrystal.visible = false;
@@ -472,7 +509,10 @@
                     hexSecTetCrystal.visible = false;
                     hexSecOctCrystal.visible = false;
                     diamondSecCrystal.visible = false;
-                } else if (controls.Crystal == 'Hexagonal'){
+                } else if (controls.Crystal == 'Hexagonal' && controls.Section == false){
+                    camCenter = camArray[1];
+                    cubeAxes.visible = false;
+                    hexAxes.visible = true;
                     simpleCrystal.visible = false;
                     scIntCrystal.visible=false;
                     hexCrystal.visible = true;
@@ -495,7 +535,10 @@
                     hexSecTetCrystal.visible = false;
                     hexSecOctCrystal.visible = false;
                     diamondSecCrystal.visible = false;
-                } else if (controls.Crystal == 'Hexagonal / 3'){
+                } else if (controls.Crystal == 'Hexagonal' && controls.Section == true){
+                    camCenter = camArray[1];
+                    cubeAxes.visible = false;
+                    hexAxes.visible = true;
                     simpleCrystal.visible = false;
                     scIntCrystal.visible=false;
                     hexCrystal.visible = false;
@@ -518,7 +561,10 @@
                     hexSecTetCrystal.visible = true;
                     hexSecOctCrystal.visible = true;
                     diamondSecCrystal.visible = false;
-                } else if (controls.Crystal == 'BCC'){
+                } else if (controls.Crystal == 'BCC' && controls.Section == false){
+                    camCenter = camArray[0];
+                    cubeAxes.visible = true;
+                    hexAxes.visible = false;
                     simpleCrystal.visible = false;
                     scIntCrystal.visible=false;
                     hexCrystal.visible = false;
@@ -541,7 +587,10 @@
                     hexSecTetCrystal.visible = false;
                     hexSecOctCrystal.visible = false;
                     diamondSecCrystal.visible = false;
-                }  else if (controls.Crystal == '110 BCC'){
+                }  else if (controls.Crystal == 'BCC' && controls.Section == true){
+                    camCenter = camArray[0];
+                    cubeAxes.visible = true;
+                    hexAxes.visible = false;
                     simpleCrystal.visible = false;
                     scIntCrystal.visible=false;
                     hexCrystal.visible = false;
@@ -564,7 +613,10 @@
                     hexSecTetCrystal.visible = false;
                     hexSecOctCrystal.visible = false;
                     diamondSecCrystal.visible = false;
-                } else if (controls.Crystal == 'FCC'){
+                } else if (controls.Crystal == 'FCC' && controls.Section == false){
+                    camCenter = camArray[0];
+                    cubeAxes.visible = true;
+                    hexAxes.visible = false;
                     simpleCrystal.visible = false;
                     scIntCrystal.visible=false;
                     hexCrystal.visible = false;
@@ -587,7 +639,10 @@
                     hexSecTetCrystal.visible = false;
                     hexSecOctCrystal.visible = false;
                     diamondSecCrystal.visible = false;
-                } else if (controls.Crystal == '111 FCC'){
+                } else if (controls.Crystal == 'FCC' && controls.Section == true){
+                    camCenter = camArray[0];
+                    cubeAxes.visible = true;
+                    hexAxes.visible = false;
                     simpleCrystal.visible = false;
                     scIntCrystal.visible=false;
                     hexCrystal.visible = false;
@@ -610,7 +665,10 @@
                     hexSecTetCrystal.visible = false;
                     hexSecOctCrystal.visible = false;
                     diamondSecCrystal.visible = false;
-                } else if (controls.Crystal == 'Diamond'){
+                } else if (controls.Crystal == 'Diamond' && controls.Section == false){
+                    camCenter = camArray[0];
+                    cubeAxes.visible = true;
+                    hexAxes.visible = false;
                     simpleCrystal.visible = false;
                     scIntCrystal.visible=false;
                     hexCrystal.visible = false;
@@ -633,7 +691,10 @@
                     hexSecTetCrystal.visible = false;
                     hexSecOctCrystal.visible = false;
                     diamondSecCrystal.visible = false;
-                } else if (controls.Crystal == '111 Diamond'){
+                } else if (controls.Crystal == 'Diamond' && controls.Section == true){
+                    camCenter = camArray[0];
+                    cubeAxes.visible = true;
+                    hexAxes.visible = false;
                     simpleCrystal.visible = false;
                     scIntCrystal.visible=false;
                     hexCrystal.visible = false;
@@ -659,6 +720,7 @@
                 }
 
                 spinner += Math.PI/200.0;
+                orbitControls.update();
 				requestAnimationFrame( render );
 				renderer.render( scene, camera );
                 //orbital.update();
